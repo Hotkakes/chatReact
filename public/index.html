@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <article>
+        <h1>Usuario</h1>
+
+        <% registros.forEach(registro => {%>
+
+            <a href="#">
+                <section><%= registro.usuario %></section>
+            </a>
+    
+        % }); %>
+    </article>
+    <h2>Chat render</h2>
+    <form id="miFormulario">
+        <input type="text" id="emisor" placeholder="emisor">
+        <br>
+        <input type="text" id="txtMensaje" placeholder="mensaje">
+        <br>
+        <input type="text" id="receptor" placeholder="receptor">
+        <br>
+        <input type="submit" value="Enviar">
+        <br>
+        <br>
+        <div class="mensajes col-md-12 text-center" style="margin-top:10px; border: 1px solid blue;">
+            <ul id="misMensajes">
+                
+            </ul>
+        </div>
+    </form>
+</body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js" integrity="sha512-zoJXRvW2gC8Z0Xo3lBbao5+AS3g6YWr5ztKqaicua11xHo+AvE1b0lT9ODgrHTmNUxeCw0Ry4BGRYZfXu70weg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script>
+    //configuramos el socket para funcionar en nuestro dominio
+    const socket = io('http://localhost:8080/');
+    const formulario = document.querySelector('#miFormulario');
+    const mensaje = document.querySelector('#misMensajes');
+    const txtMensaje = document.querySelector('#txtMensaje');
+    const emisor = document.querySelector('#emisor');
+    const receptor = document.querySelector('#receptor');
+
+    formulario.addEventListener('submit',(ev)=>{
+        ev.preventDefault();
+
+        const nuevoMensaje = txtMensaje.value;
+        const useremisor = emisor.value;
+        const userreceptor = receptor.value;
+
+        console.log(nuevoMensaje);
+        socket.emit('mensaje-cliente', { user: useremisor, mensaje: nuevoMensaje, userreceptor: userreceptor });
+        console.log(socket);
+
+    })
+
+    socket.on("mensaje-from-server",(data)=>{
+        console.log(data);
+        mensaje.innerHTML += `<li>${ data.mensaje }</li>`
+    });
+
+    //Agregamos la informacion que envia el servidor para mostrarlo del lado del cliente
+    /*socket.on("Bienvenido_Usuario",(data)=>{
+        console.log(data);
+    });
+
+    setTimeout( () => {
+        socket.emit('mensaje-cliente', { msg: 'cliente', nombre: 'David' });
+        console.log(socket);
+    },2000)*/
+</script>
+</html>

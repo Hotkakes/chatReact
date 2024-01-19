@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+
+    <div style="position: absolute; top: 0; bottom: 0; left: 0; right: 0; background-color: rgb(212, 212, 212)">
+    <div style="display: flex; height: 100%;">
+        <div style="width: 40%; padding: 8px; line-height: 1em;
+        overflow-x: hidden;
+        overflow-y: scroll;">
+        <input id="FiltrarContenido" onkeyup="FiltrarContenido(this.value)" style="width: 98%; padding: 5px; border: 2px solid rgb(112, 185, 185);" placeholder="Buscar Contacto">
+            <article class="BusquedaRapida">
+                <%if(asociados != envia){ asociados.forEach(usuario => { %>
+                    <% if(usuario.usuario != ""){ %>
+                    <ul style=" background-color: rgb(255, 255, 255); margin-top: 5px; padding: 10px; display: flex; align-items: center;">
+                        <!-- <span>https://expedientes.uveg.edu.mx/uveg/20<%= usuario.usuario.substr(0, 2)+"/"+usuario.usuario+"/"+usuario.usuario+"_pcv.jpg" %></span> -->
+                    <img style="width: 60px; border-radius: 50%; border: 0px solid #ffffff; box-shadow: 0 1px 3px 0 rgba(0,0,0,0.2), 0 2px 7px 0 rgba(0,0,0,0.19);" alt="Match" src="https://expedientes.uveg.edu.mx/uveg/20<%= usuario.usuario.substr(0, 2)+'/'+usuario.usuario+'/'+usuario.usuario+'_pcv.jpg' %>">    
+                    <a style="color: rgb(56, 56, 56); margin-left: 10px;" href="../<%= envia %>?recibe=<%= usuario.usuario %>&envia=<%= envia %>">
+                        <section><%= usuario.nombre %></section>
+                    </a>
+                    </ul>
+                    <% } %>
+                <% }); }%>
+            </article>
+        </div>
+        <div style="width: 60%; background-color: rgb(224, 224, 224);">
+            <form id="miFormulario" style="display: flex;
+            flex-wrap: wrap;
+            flex-direction: column;
+            height: 100%;">
+            <div class="mensajes col-md-12 text-center" id="scrollmesage" style="height: 88%; background-color: rgb(224, 224, 224); padding-right: 10px; padding-left: 10px; line-height: 1em;
+            overflow-x: hidden;
+            overflow-y: scroll;">
+            <!-- <div id="misMensajes">...</div> -->
+
+            <%if(registros){for(var i=0; i < registros.length; i++){%>
+   
+                <% if(registros[i].emisor != envia){ %>
+    
+                <div id="bdMensajes" style="display: flex;
+                flex-wrap: wrap-reverse;
+                flex-direction: column;">
+                        <div style="width: -moz-min-content; /* Firefox */
+                        width: -webkit-min-content; /* Chrome */
+                        width: min-content; margin-top: 8px; padding: 6px; padding-left: 15px; padding-right: 15px; background-color: rgb(13, 123, 143); color: #ffffff; border-top-left-radius: 10px; border-bottom-left-radius: 10px; border-bottom-right-radius: 10px;"><%= registros[i].mensaje %></div>
+                </div>
+                <% }else{ %>    
+                    <div id="bdMensajes" style="display: flex;
+                    flex-wrap: wrap;
+                    flex-direction: column;">
+                            <div style="width: -moz-min-content; /* Firefox */
+                            width: -webkit-min-content; /* Chrome */
+                            width: min-content; margin-top: 8px; padding: 6px; padding-left: 15px; padding-right: 15px; background-color: rgb(31, 174, 117); color: #ffffff; border-top-right-radius: 10px; border-bottom-right-radius: 10px; border-bottom-left-radius: 10px;"><%= registros[i].mensaje %></div>
+                    </div>
+                <% }; %>
+        
+            <% };  }else{%>
+                <div id="bdMensajes" style="display: flex;
+                flex-wrap: wrap;
+                flex-direction: column;">
+                        <div style="background-color: blue;" id="misMensajes"></div>
+                </div>
+                <div id="bdMensajes" style="display: flex;
+                flex-wrap: wrap-reverse;
+                flex-direction: column;">
+                        <div style="background-color: blue;" id="otherMensajes"></div>
+                </div>
+            <% } %>
+            <div id="misMensajes"></div>
+                <!-- <%if(registros){registros.forEach(registro => {%>
+    
+                    <div id="bdMensajes" style="display: flex;
+                    flex-wrap: wrap;
+                    flex-direction: column;">
+                            <div style="width: -moz-min-content; /* Firefox */
+                            width: -webkit-min-content; /* Chrome */
+                            width: min-content; margin-top: 8px; padding: 6px; padding-left: 15px; padding-right: 15px; background-color: rgb(0, 157, 94); color: #ffffff;"><%= registro.mensaje %></div>
+                    </div>
+            
+                <% });  }else{%>
+                    <div id="bdMensajes" style="display: flex;
+                    flex-wrap: wrap;
+                    flex-direction: column;">
+                            <div style="background-color: blue;" id="misMensajes"></div>
+                    </div>
+                <% } %> -->
+            
+            </div>
+            <div style="display: flex; align-items: end; height: 10%;">
+                <% if(registros != ''){ %>
+                    <input hidden type="text" id="emisor" value="<%= registros[0].emisor %>" placeholder="emisor">
+                    <input type="text" id="receptor" value="<%= registros[0].receptor %>" placeholder="receptor">
+                    <% }else{ %>
+                    <input hidden  type="text" id="emisor" value="<%= envia %>" placeholder="emisor">
+                    <input type="text" id="receptor" value="<%= recibe %>" placeholder="receptor">
+                    <% }%>
+                <input type="text" style="width: 80%; padding: 5px; border-radius: 10px;" id="txtMensaje" placeholder="mensaje">
+                <input type="submit" style="width: 20%; padding: 5px; border-radius: 10px; background-color: rgb(9, 48, 96); border: 2px solid rgb(224, 224, 224); color: #ffff; margin-left: 5px;" value="Enviar">
+            </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- <article>
+        <h1>Usuario</h1>
+        <%if(asociados != ''){ asociados.forEach(usuario => { %>
+
+            <a href="../<%= envia %>?recibe=<%= usuario.usuario %>&envia=<%= envia %>">
+                <section><%= usuario.nombre %></section>
+            </a>
+    
+        <% }); }%>
+    </article> -->
+    
+    <!-- <h2>Chat render</h2>
+    <form id="miFormulario"> -->
+
+        <!-- <% if(registros != ''){ %>
+        <input hidden type="text" id="emisor" value="<%= registros[0].emisor %>" placeholder="emisor">
+        <input hidden type="text" id="receptor" value="<%= registros[0].receptor %>" placeholder="receptor">
+        <% }else{ %>
+        <input hidden type="text" id="emisor" value="<%= envia %>" placeholder="emisor">
+        <input hidden type="text" id="receptor" value="<%= recibe %>" placeholder="receptor">
+        <% }%> -->
+        <!-- <input type="text" id="txtMensaje" placeholder="mensaje">
+        <br>
+        <br>
+        <input type="submit" value="Enviar">
+        <br>
+        <br> -->
+        <!-- <div class="mensajes col-md-12 text-center" style="margin-top:10px; border: 1px solid blue;">
+            <%if(registros){registros.forEach(registro => {%>
+
+                <ul id="misMensajes">
+                    <li><%= registro.mensaje %></li>
+                </ul>
+        
+            <% });  }%>
+            <ul id="misMensajes">
+                
+            </ul>
+        
+        </div> -->
+    <!-- </form> -->
+</body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js" integrity="sha512-zoJXRvW2gC8Z0Xo3lBbao5+AS3g6YWr5ztKqaicua11xHo+AvE1b0lT9ODgrHTmNUxeCw0Ry4BGRYZfXu70weg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script
+  src="https://code.jquery.com/jquery-3.7.1.js"
+  integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4="
+  crossorigin="anonymous"></script>
+<script>
+    //configuramos el socket para funcionar en nuestro dominio
+    const socket = io('http://localhost:3000/');
+    const formulario = document.querySelector('#miFormulario');
+    const mensaje = document.querySelector('#misMensajes');
+    const mensaje2 = document.querySelector('#otherMensajes');
+    const txtMensaje = document.querySelector('#txtMensaje');
+    const scrollmesage = document.querySelector('#scrollmesage');
+    //const emisor = document.querySelector('#emisor');
+    const emisor = '<%= envia %>';
+    const receptor = document.querySelector('#receptor');
+    const filtrar = document.querySelector('#FiltrarContenido');
+
+    jQuery(document).ready(function(){
+
+        var mydiv = $("#scrollmesage");
+mydiv.scrollTop(mydiv.prop("scrollHeight"));
+
+        (function($) {
+$('#FiltrarContenido').keyup(function () {
+    var ValorBusqueda = new RegExp($(this).val(), 'i');
+    $('.BusquedaRapida ul').hide();
+     $('.BusquedaRapida ul').filter(function () {
+        return ValorBusqueda.test($(this).text());
+      }).show();
+        })
+}(jQuery));
+
+}); 
+
+
+    // if("<%= registros %>"){"<%= registros %>".forEach(registro => {
+    //             console.log(registro.mensaje);
+    //         });}
+                              
+    formulario.addEventListener('submit',(ev)=>{
+        ev.preventDefault();
+
+        const nuevoMensaje = txtMensaje.value;
+        const useremisor = '<%= envia %>';
+        const userreceptor = '<%= recibe %>';
+
+        console.log(nuevoMensaje);
+        socket.emit('mensaje-cliente', { user: useremisor, mensaje: nuevoMensaje, userreceptor: userreceptor });
+        console.log(socket);
+
+    })
+
+    socket.on("mensaje-from-server",(data)=>{
+        
+        const useremisor2 = '<%= envia %>';
+        const userreceptor2 = '<%= recibe %>';
+
+        console.log(data.user + " / " + useremisor2);
+        console.log(data.userreceptor + " / " + userreceptor2);
+
+        if(data.user == useremisor2){
+            mensaje.innerHTML += `<div id="bdMensajes" style="display: flex;
+                flex-wrap: wrap;
+                flex-direction: column;">
+                <div style="width: -moz-min-content; /* Firefox */
+            width: -webkit-min-content; /* Chrome */
+            width: min-content; margin-top: 8px; padding: 6px; padding-left: 15px; padding-right: 15px; background-color: rgb(0, 157, 94); color: #ffffff;" id="misMensajes">${ data.mensaje }</div></div>`
+        }else if((data.user != userreceptor2)&&(data.userreceptor != useremisor2)){
+                console.log("no permitido3");
+            }else{
+            if((data.user != userreceptor2)&&(data.userreceptor == useremisor2)){
+                mensaje.innerHTML += `<div id="bdMensajes" style="display: flex;
+                flex-wrap: wrap-reverse;
+                flex-direction: column;">
+                <div style="width: -moz-min-content; /* Firefox */
+            width: -webkit-min-content; /* Chrome */
+            width: min-content; margin-top: 8px; padding: 6px; padding-left: 15px; padding-right: 15px; background-color: rgb(13, 123, 143); color: #ffffff;" id="misMensajes">${ data.mensaje }</div></div>`;
+            }else if(useremisor2 == userreceptor2){
+                console.log("pffff")
+            }else if((data.userreceptor == userreceptor2)&&(data.user == useremisor2)){
+                console.log("utaaa")
+            }else if(data.user == userreceptor2){
+                console.log("ola");
+            }
+        }
+
+
+        var mydiv = $("#scrollmesage");
+mydiv.scrollTop(mydiv.prop("scrollHeight"));
+    });
+
+    //Agregamos la informacion que envia el servidor para mostrarlo del lado del cliente
+    /*socket.on("Bienvenido_Usuario",(data)=>{
+        console.log(data);
+    });
+
+    setTimeout( () => {
+        socket.emit('mensaje-cliente', { msg: 'cliente', nombre: 'David' });
+        console.log(socket);
+    },2000)*/
+</script>
+</html>
