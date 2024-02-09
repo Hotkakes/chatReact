@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,30 +10,37 @@
 
     <div style="position: absolute; top: 0; bottom: 0; left: 0; right: 0; background-color: rgb(212, 212, 212)">
     <div style="display: flex; height: 100%;">
-        <div style="width: 40%; padding: 8px; line-height: 1em;
+        <div id="list_contactos" style="width: 40%; padding: 8px; line-height: 1em;
         overflow-x: hidden;
         overflow-y: scroll;">
         <input id="FiltrarContenido" onkeyup="FiltrarContenido(this.value)" style="width: 98%; padding: 5px; border: 2px solid rgb(112, 185, 185);" placeholder="Buscar Contacto">
             <article class="BusquedaRapida">
                 <%if(asociados != envia){ asociados.forEach(usuario => { %>
                     <% if(usuario.usuario != ""){ %>
-                    <ul style=" background-color: rgb(255, 255, 255); margin-top: 5px; padding: 10px; display: flex; align-items: center;">
+                    <ul onclick="pruebaMensajes('<%= usuario.usuario %>')" style=" background-color: rgb(255, 255, 255); margin-top: 5px; padding: 10px; display: flex; align-items: center;">
                         <!-- <span>https://expedientes.uveg.edu.mx/uveg/20<%= usuario.usuario.substr(0, 2)+"/"+usuario.usuario+"/"+usuario.usuario+"_pcv.jpg" %></span> -->
                     <img style="width: 60px; border-radius: 50%; border: 0px solid #ffffff; box-shadow: 0 1px 3px 0 rgba(0,0,0,0.2), 0 2px 7px 0 rgba(0,0,0,0.19);" alt="Match" src="https://expedientes.uveg.edu.mx/uveg/20<%= usuario.usuario.substr(0, 2)+'/'+usuario.usuario+'/'+usuario.usuario+'_pcv.jpg' %>">    
-                    <a style="color: rgb(56, 56, 56); margin-left: 10px;" href="../<%= envia %>?recibe=<%= usuario.usuario %>&envia=<%= envia %>">
+                    <a style="color: rgb(56, 56, 56); margin-left: 10px;" href="../<%= envia %>?recibe=<%= usuario.usuario %>&source=<%= usuario.nombre %>&envia=<%= envia %>">
                         <section><%= usuario.nombre %></section>
                     </a>
+                    <button onclick="verinfo()">info</button>
+                    <span id="<%= usuario.usuario %>" style="padding: 3px; border-radius: 5px; font-size: 11px; margin-left: 10px;"></span>
                     </ul>
                     <% } %>
                 <% }); }%>
             </article>
         </div>
-        <div style="width: 60%; background-color: rgb(224, 224, 224);">
+        <div id="list_mensajes" style="width: 60%; background-color: rgb(224, 224, 224);">
+            <div style="position: fixed; background-color: #00398e; width: 100%;  color: #ffffff; padding: 5px;">
+                <b>Platicas con <%= nombre %></b>
+                <input type="button" value="Mis Contactos" onclick="volver()">
+            </div>
             <form id="miFormulario" style="display: flex;
             flex-wrap: wrap;
             flex-direction: column;
-            height: 100%;">
-            <div class="mensajes col-md-12 text-center" id="scrollmesage" style="height: 88%; background-color: rgb(224, 224, 224); padding-right: 10px; padding-left: 10px; line-height: 1em;
+            height: 100%;
+            margin-top: 15px;">
+            <div id="zonaChat" class="mensajes col-md-12 text-center" id="scrollmesage" style="height: 88%; background-color: rgb(224, 224, 224); padding-right: 10px; padding-left: 10px; line-height: 1em;
             overflow-x: hidden;
             overflow-y: scroll;">
             <!-- <div id="misMensajes">...</div> -->
@@ -70,7 +78,7 @@
                         <div style="background-color: blue;" id="otherMensajes"></div>
                 </div>
             <% } %>
-            <div id="misMensajes"></div>
+            <div id="misMensajes">asddsadsda</div>
                 <!-- <%if(registros){registros.forEach(registro => {%>
     
                     <div id="bdMensajes" style="display: flex;
@@ -93,10 +101,10 @@
             <div style="display: flex; align-items: end; height: 10%;">
                 <% if(registros != ''){ %>
                     <input hidden type="text" id="emisor" value="<%= registros[0].emisor %>" placeholder="emisor">
-                    <input type="text" id="receptor" value="<%= registros[0].receptor %>" placeholder="receptor">
+                    <input hidden type="text" id="receptor" value="<%= registros[0].receptor %>" placeholder="receptor">
                     <% }else{ %>
-                    <input hidden  type="text" id="emisor" value="<%= envia %>" placeholder="emisor">
-                    <input type="text" id="receptor" value="<%= recibe %>" placeholder="receptor">
+                    <input hidden type="text" id="emisor" value="<%= envia %>" placeholder="emisor">
+                    <input hidden type="text" id="receptor" value="<%= recibe %>" placeholder="receptor">
                     <% }%>
                 <input type="text" style="width: 80%; padding: 5px; border-radius: 10px;" id="txtMensaje" placeholder="mensaje">
                 <input type="submit" style="width: 20%; padding: 5px; border-radius: 10px; background-color: rgb(9, 48, 96); border: 2px solid rgb(224, 224, 224); color: #ffff; margin-left: 5px;" value="Enviar">
@@ -167,25 +175,83 @@
 
     jQuery(document).ready(function(){
 
+        socket.emit('conection-emit', { emit: emisor, estado: 'conectado' });
+
+        if(('<%= recibe %>' != '')||('<%= recibe %>' != null)){
+        div = document.getElementById('list_mensajes');
+        div.style.display = '';
+        document.getElementById("list_contactos").style.width = "40%"; 
+        document.getElementById("list_mensajes").style.width = "60%";
+        }else{
+        div = document.getElementById('list_mensajes');
+        div.style.display = 'none';
+        document.getElementById("list_contactos").style.width = "99%"; 
+        }
+        
+
         var mydiv = $("#scrollmesage");
 mydiv.scrollTop(mydiv.prop("scrollHeight"));
 
-        (function($) {
-$('#FiltrarContenido').keyup(function () {
-    var ValorBusqueda = new RegExp($(this).val(), 'i');
-    $('.BusquedaRapida ul').hide();
-     $('.BusquedaRapida ul').filter(function () {
-        return ValorBusqueda.test($(this).text());
-      }).show();
-        })
-}(jQuery));
+//         (function($) {
+// $('#FiltrarContenido').keyup(function () {
+//     var ValorBusqueda = new RegExp($(this).val(), 'i');
+//     $('.BusquedaRapida ul').hide();
+//      $('.BusquedaRapida ul').filter(function () {
+//         return ValorBusqueda.test($(this).text());
+//       }).show();
+//         })
+// }(jQuery));
 
 }); 
-
 
     // if("<%= registros %>"){"<%= registros %>".forEach(registro => {
     //             console.log(registro.mensaje);
     //         });}
+
+    function volver(){
+        delete mensaje.innerHTML; 
+        div = document.getElementById('list_mensajes');
+        div.style.display = 'none';
+        div2 = document.getElementById('list_contactos');
+        div2.style.display = '';
+        document.getElementById("list_contactos").style.width = "99%"; 
+    }
+
+    function verinfo(){
+        $.get("http://localhost:3000/apiUsuariosChat",
+                function(data,status){
+                    alert(data);
+                })
+                .fail(function() {
+                    alert( "error" );                  //EN EL NAVEGADOR SE EJECUTA ESTE CODIGO DE ERROR
+                });
+    }
+
+    function pruebaMensajes(params) {
+        delete mensaje.innerHTML; 
+        div = document.getElementById('list_contactos');
+        div.style.display = 'none';
+        div2 = document.getElementById('list_mensajes');
+        div2.style.display = '';
+        document.getElementById("list_mensajes").style.width = "99%"; 
+        socket.emit('mensaje-cliente-carga', { user: '<%= envia %>', userreceptor: params });
+        socket.on("listado-mensajes-server",(data)=>{
+
+            for(var i=0; i < data.length; ++i){
+                mensaje.innerHTML += `<div id="bdMensajes" style="display: flex;
+                flex-wrap: wrap-reverse;
+                flex-direction: column;">
+                <div style="width: -moz-min-content; /* Firefox */
+            width: -webkit-min-content; /* Chrome */
+            width: min-content; margin-top: 8px; padding: 6px; padding-left: 15px; padding-right: 15px; background-color: rgb(13, 123, 143); color: #ffffff;" id="misMensajes">${ data[i].mensaje }</div></div>`;
+            }
+        
+        // data.forEach(mensaje => {
+        //     //usuario.usuario.innerHTML +='<b style="color: #3AB800; background: #E4FFD7;">En linea</b>'
+        //     $('#misMensajes').html('<b>asds'+mensaje.mensaje+'</b>');
+        // })
+    })
+    }
                               
     formulario.addEventListener('submit',(ev)=>{
         ev.preventDefault();
@@ -194,10 +260,24 @@ $('#FiltrarContenido').keyup(function () {
         const useremisor = '<%= envia %>';
         const userreceptor = '<%= recibe %>';
 
+        if(nuevoMensaje =='' || nuevoMensaje == null){
+            console.log('not null');
+        }else{
+
         console.log(nuevoMensaje);
         socket.emit('mensaje-cliente', { user: useremisor, mensaje: nuevoMensaje, userreceptor: userreceptor });
         console.log(socket);
+        }
 
+    })
+
+    socket.on("listado-usuarios-server",(data)=>{
+        
+        data.forEach(usuario => {
+            //usuario.usuario.innerHTML +='<b style="color: #3AB800; background: #E4FFD7;">En linea</b>'
+            $('#'+usuario.usuario).css('color', '#3AB800').html('<b>En linea</b>');
+            $('#'+usuario.usuario).css('background', '#E4FFD7');
+        })
     })
 
     socket.on("mensaje-from-server",(data)=>{
@@ -219,18 +299,20 @@ $('#FiltrarContenido').keyup(function () {
                 console.log("no permitido3");
             }else{
             if((data.user != userreceptor2)&&(data.userreceptor == useremisor2)){
+                console.log("aiuda")
+            }else if(useremisor2 == userreceptor2){
+                console.log("pffff")
+            }else if((data.userreceptor == userreceptor2)&&(data.user == useremisor2)){
+                console.log("utaaa")
+            }else if((data.user == userreceptor2)&&(useremisor2 == data.userreceptor)){
                 mensaje.innerHTML += `<div id="bdMensajes" style="display: flex;
                 flex-wrap: wrap-reverse;
                 flex-direction: column;">
                 <div style="width: -moz-min-content; /* Firefox */
             width: -webkit-min-content; /* Chrome */
             width: min-content; margin-top: 8px; padding: 6px; padding-left: 15px; padding-right: 15px; background-color: rgb(13, 123, 143); color: #ffffff;" id="misMensajes">${ data.mensaje }</div></div>`;
-            }else if(useremisor2 == userreceptor2){
-                console.log("pffff")
-            }else if((data.userreceptor == userreceptor2)&&(data.user == useremisor2)){
-                console.log("utaaa")
-            }else if(data.user == userreceptor2){
-                console.log("ola");
+            }else if((data.user != data.userreceptor)&&(data.user == userreceptor2)&&(useremisor2 != userreceptor2)){
+                console.log("piensa");
             }
         }
 

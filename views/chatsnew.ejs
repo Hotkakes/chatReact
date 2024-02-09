@@ -1,0 +1,344 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+
+    <div style="position: absolute; top: 0; bottom: 0; left: 0; right: 0; background-color: rgb(212, 212, 212)">
+        <div style="display: flex; height: 100%;">
+            <div id="list_contactos" style="width: 40%; padding: 8px; line-height: 1em;
+            overflow-x: hidden;
+            overflow-y: scroll;">
+
+<input id="Filtrado" onkeyup="Filtrado(this.value)" style="width: 98%; padding: 5px; border: 2px solid rgb(112, 185, 185);" placeholder="Buscar Contacto">
+                    <article class="Busqueda">
+                        <div id="list_contactos_carga">
+                           
+                        </div>
+                    </article>
+                
+            </div>
+            <div id="list_mensajes_contenido" style="width: 60%; background-color: rgb(224, 224, 224);">
+                <div style="position: fixed; display: flex; align-items: center; background-color: #00408e7d; width: 100%;  color: #ffffff; padding: 5px;">
+                    <span id="indicador_Contacto"></span>
+                </div>    
+        
+                <form id="conversatorio" style="display: flex;
+                flex-wrap: wrap;
+                flex-direction: column;
+                height: 96%;
+                padding-top: 35px;">
+                    <div id="zonaChat" class="mensajes col-md-12 text-center" style="height: 88%; background-color: rgb(224, 224, 224); padding-right: 10px; padding-left: 10px; line-height: 1em;
+                    overflow-x: hidden;
+                    overflow-y: scroll;">
+            
+                        <div id="list_mensajes" style="display: flex;
+                        flex-wrap: wrap-reverse;
+                        flex-direction: column;">
+                            mensajes
+                        </div>
+            
+                    </div>    
+                    
+                    <div style="display: flex; align-items: end; height: 10%;">
+                        <input id="getContact">
+                        <input id="emisor" value="'<%= usuario_token %>'">
+                        <input type="text" style="width: 80%; padding: 5px; border-radius: 10px;" id="txtMensaje" placeholder="mensaje">
+                        <input type="submit" style="width: 20%; padding: 5px; border-radius: 10px; background-color: rgb(9, 48, 96); border: 2px solid rgb(224, 224, 224); color: #ffff; margin-left: 5px;" value="Enviar">
+                    </div>
+                        
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js" integrity="sha512-zoJXRvW2gC8Z0Xo3lBbao5+AS3g6YWr5ztKqaicua11xHo+AvE1b0lT9ODgrHTmNUxeCw0Ry4BGRYZfXu70weg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script
+  src="https://code.jquery.com/jquery-3.7.1.js"
+  integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4="
+  crossorigin="anonymous"></script>
+<script>
+    //configuramos el socket para funcionar en nuestro dominio
+    const socket = io('http://localhost:3000/');
+
+    const contactos = document.querySelector('#list_contactos_carga');
+    const mensajes = document.querySelector('#list_mensajes');
+    const formulario = document.querySelector('#conversatorio');
+    const txtMensaje = document.querySelector('#txtMensaje');
+    const getContact = document.querySelector('#getContact');
+    const emisor = document.querySelector('#emisor');
+    const indicador_Contacto = document.querySelector('#indicador_Contacto');
+    const filtrar = document.querySelector('#Filtrado');
+    
+
+    jQuery(document).ready(function(){
+
+                (function($) {
+$('#Filtrado').keyup(function () {
+    var ValorBusqueda = new RegExp($(this).val(), 'i');
+    $('.Busqueda ul').hide();
+     $('.Busqueda ul').filter(function () {
+        return ValorBusqueda.test($(this).text());
+      }).show();
+        })
+}(jQuery));
+
+        socket.emit('conection-emit', { emit: '<%= usuario_token %>', estado: 'conectado' });
+
+        var content = $('#getContact').val();
+
+        if((content != '')||(content != null)){
+        div = document.getElementById('list_mensajes_contenido');
+        div.style.display = 'none';
+        div2 = document.getElementById('list_contactos');
+        div2.style.display = '';
+        document.getElementById("list_contactos").style.width = "98%"; 
+        document.getElementById("list_mensajes_contenido").style.width = "0%";
+        }else{
+        div2 = document.getElementById('list_contactos');
+        div2.style.display = 'none';
+        div = document.getElementById('list_mensajes_contenido');
+        div.style.display = '';
+        document.getElementById("list_mensajes_contenido").style.width = "98%"; 
+        }
+
+        var mydiv = $("#zonaChat");
+mydiv.scrollTop(mydiv.prop("scrollHeight"));
+
+        $.get("http://localhost:3000/apiUsuariosChat?perfil="+'<%= usuario_token %>',
+                function(data,status){
+
+                    console.log("token:"+data.token);
+                    $('#emisor').val(data.token);
+                
+                    for(var i=0; i < data["contacto"].length; i++){
+                        //console.log(data["contacto"][i].usuario);
+                        contactos.innerHTML += `<ul style=" background-color: rgb(255, 255, 255); margin-top: 5px; padding: 10px; display: flex; align-items: center;" onclick=(verificarMsg('${ data["contacto"][i].usuario }'))>
+                            <img id='myImage' style="background-image: url('https://registroeventos.uveg.edu.mx/CI4//public/assets/images/ponente.jpeg'); background-size: cover; color: rgba(0, 0, 0, 0); width: 60px; height: 60px; border-radius: 50%; border: 0px solid #ffffff; box-shadow: 0 1px 3px 0 rgba(0,0,0,0.2), 0 2px 7px 0 rgba(0,0,0,0.19);" alt="Match" src="https://expedientes.uveg.edu.mx/uveg/20${ data["contacto"][i].usuario.substr(0, 2) }/${ data["contacto"][i].usuario }/${ data["contacto"][i].usuario }_pcv.jpg">
+                            <div style='display: grid; justify-content: start; margin-left: 20px;'>${ data["contacto"][i].nombre }<br><span style='color: #EF0045; font-size: 12px;' id='${ data["contacto"][i].usuario }'>inactivo</span></div><span id='contador${ data["contacto"][i].usuario }'></span></ul>`;
+                    }
+                })
+                .fail(function() {
+                    alert( "error" );                  //EN EL NAVEGADOR SE EJECUTA ESTE CODIGO DE ERROR
+                });
+
+        socket.emit('get-messages-count', { emisor: '<%= usuario_token %>', control: 'consulta'});
+
+    });
+
+
+    (function($) {
+$('#Filtrado').keyup(function () {
+    var ValorBusqueda = new RegExp($(this).val(), 'i');
+    $('.BusquedaRapida ul').hide();
+     $('.BusquedaRapida ul').filter(function () {
+        return ValorBusqueda.test($(this).text());
+      }).show();
+        })
+}(jQuery));
+
+function Filtrado(params) {
+    var ValorBusqueda = new RegExp(params, 'i');
+    $('.Busqueda ul').hide();
+     $('.Busqueda ul').filter(function () {
+        return ValorBusqueda.test($(this).text());
+      }).show();
+}
+
+    //let contador = 0;
+    function verificarMsg(contacto){
+        $('#indicador_Contacto').empty();
+        socket.emit('get-messages-count', { emisor: '<%= usuario_token %>', control: 'update', contacto: contacto});
+        $('#contador'+contacto).css('background', '#ffffff').empty();
+        //let contador = 0;
+        $('#getContact').val(contacto);
+        indicador_Contacto.innerHTML += `<img style="width: 40px; border-radius: 50%; border: 0px solid #ffffff; box-shadow: 0 1px 3px 0 rgba(0,0,0,0.2), 0 2px 7px 0 rgba(0,0,0,0.19);" alt="Match" src="https://expedientes.uveg.edu.mx/uveg/20${ contacto.substr(0, 2) }/${ contacto }/${ contacto }_pcv.jpg"> <input type="button" style="background-color: rgb(0, 140, 255); color: #ffffff; border-radius: 10px; border: none; font-size: 16px; margin-left: 10px;" value="Volver" onclick="volver(${ contacto })">`;
+
+        $.get("http://localhost:3000/apiMensajesChat?perfil="+'<%= usuario_token %>'+"&contacto="+contacto,
+                function(data,status){
+
+                    div2 = document.getElementById('list_contactos');
+                    div2.style.display = 'none';
+                    div = document.getElementById('list_mensajes_contenido');
+                    div.style.display = '';
+                    document.getElementById("list_mensajes_contenido").style.width = "99%"; 
+
+                    $('#list_mensajes').empty();
+                    for(var i=0; i < data["informacion"].length; i++){
+                        //console.log(data["informacion"][i].mensaje);
+                        if((data["informacion"][i].emisor == emisor.value)&&(data["informacion"][i].emisor == '<%= usuario_token %>')){
+                            mensajes.innerHTML += `<div id="bdMensajes" style="display: flex;
+                                                  flex-wrap: wrap;
+                                                  flex-direction: column;">
+                                                  <div style="width: -moz-min-content; /* Firefox */
+                                                  width: -webkit-min-content; /* Chrome */
+                                                  width: min-content; margin-top: 8px; padding: 6px; padding-left: 15px; padding-right: 15px; background-color: rgb(0, 157, 94); color: #ffffff;" id="misMensajes"> ${ data["informacion"][i].mensaje } </div></div>`;  
+                        }else if((data["informacion"][i].receptor == getContact.value)||(data["informacion"][i].receptor == '<%= usuario_token %>')){
+                            mensajes.innerHTML += `<div id="bdMensajes" style="display: flex;
+                                                    flex-wrap: wrap-reverse;
+                                                    flex-direction: column;">
+                                                    <div style="width: -moz-min-content; /* Firefox */
+                                                    width: -webkit-min-content; /* Chrome */
+                                                    width: min-content; margin-top: 8px; padding: 6px; padding-left: 15px; padding-right: 15px; background-color: rgb(13, 123, 143); color: #ffffff;" id="misMensajes"> ${ data["informacion"][i].mensaje } </div></div>`;    
+                        }
+                    }
+
+                    var mydiv = $("#zonaChat");
+                    mydiv.scrollTop(mydiv.prop("scrollHeight"));
+                })
+                .fail(function() {
+                    alert( "error" );                  //EN EL NAVEGADOR SE EJECUTA ESTE CODIGO DE ERROR
+                });
+        
+        
+    //     socket.emit('mensaje-cliente-carga', { user: '<%= usuario_token %>', userreceptor: contacto });
+    //     socket.on("listado-mensajes-server",(data)=>{
+    //         $('#list_mensajes').empty();
+
+    //         for(var i=0; i < data.length; ++i){
+    //             console.log(data[i].emisor);
+    //             if((data[i].emisor == emisor.value)&&(data[i].emisor == '<%= usuario_token %>')){
+    //             mensajes.innerHTML += `<div id="bdMensajes" style="display: flex;
+    //             flex-wrap: wrap;
+    //             flex-direction: column;">
+    //             <div style="width: -moz-min-content; /* Firefox */
+    //         width: -webkit-min-content; /* Chrome */
+    //         width: min-content; margin-top: 8px; padding: 6px; padding-left: 15px; padding-right: 15px; background-color: rgb(0, 157, 94); color: #ffffff;" id="misMensajes"> ${ data[i].mensaje } </div></div>`;  
+    //             }else if((data[i].receptor == getContact.value)||(data[i].receptor == '<%= usuario_token %>')){
+    //                 console.log(data[i].receptor);
+    //                 mensajes.innerHTML += `<div id="bdMensajes" style="display: flex;
+    //             flex-wrap: wrap-reverse;
+    //             flex-direction: column;">
+    //             <div style="width: -moz-min-content; /* Firefox */
+    //         width: -webkit-min-content; /* Chrome */
+    //         width: min-content; margin-top: 8px; padding: 6px; padding-left: 15px; padding-right: 15px; background-color: rgb(13, 123, 143); color: #ffffff;" id="misMensajes"> ${ data[i].mensaje } </div></div>`;    
+    //             }
+    //         }
+    // })
+    }
+
+    socket.on("listado-usuarios-server",(data)=>{
+        
+        data.forEach(usuario => {
+            //usuario.usuario.innerHTML +='<b style="color: #3AB800; background: #E4FFD7;">En linea</b>'
+            $('#'+usuario.usuario).css('color', '#59D900').html('<b>En linea</b>');
+            $('#'+usuario.usuario).css('font-size', '12px');
+            $('#'+usuario.usuario).css('border-radius', '20px');
+            $('#'+usuario.usuario).css('padding', '5px');
+        })
+    })
+
+    socket.on("listado-mensajes-count",(data)=>{
+        data.forEach(usuario => {
+            //usuario.usuario.innerHTML +='<b style="color: #3AB800; background: #E4FFD7;">En linea</b>'
+            $('#contador'+usuario.emisor).css('color', '#ffffff').html('<span>'+usuario.recibidos+'</span>');
+            $('#contador'+usuario.emisor).css('background', '#00C4E7');
+            $('#contador'+usuario.emisor).css('border-radius', '20px');
+            $('#contador'+usuario.emisor).css('padding', '3px');
+            $('#contador'+usuario.emisor).css('padding-left', '7px');
+            $('#contador'+usuario.emisor).css('padding-right', '7px');
+            $('#contador'+usuario.emisor).css('margin-left', '20px');
+            $('#contador'+usuario.emisor).css('font-size', '12px');
+            $('#contador'+usuario.emisor).css('font-weight', 'bold');
+        })
+    })
+
+    formulario.addEventListener('submit',(ev)=>{
+
+        ev.preventDefault();
+
+        const nuevoMensaje = txtMensaje.value;
+        const useremisor = '<%= usuario_token %>'
+        const userreceptor = getContact.value;;
+
+        if(nuevoMensaje =='' || nuevoMensaje == null){
+            console.log('not null');
+        }else{
+            $('#txtMensaje').val('');
+
+        socket.emit('mensaje-cliente', { user: useremisor, mensaje: nuevoMensaje, userreceptor: userreceptor });
+        
+        socket.emit('get-messages-count', { emisor: userreceptor, control: 'consulta'});
+        // contador += 1;
+        // console.log(contador);
+        // $("#"+userreceptor).html("<span>"+contador+"</span>")
+        var mydiv = $("#zonaChat");
+        mydiv.scrollTop(mydiv.prop("scrollHeight"));
+        }
+
+
+    })
+
+    function volver(contact){
+        $('#contador'+contact).css('background','#ffffff').empty();
+        $('#list_mensajes').empty();
+        $('#getContact').val('');
+        div = document.getElementById('list_mensajes_contenido');
+        div.style.display = 'none';
+        div2 = document.getElementById('list_contactos');
+        div2.style.display = '';
+        document.getElementById("list_contactos").style.width = "98%"; 
+        document.getElementById("list_mensajes_contenido").style.width = "0%";
+    }
+
+    socket.on("mensaje-from-server",(data)=>{
+        
+        console.log("emisor: "+data.user+" / receptor:"+data.userreceptor);
+        console.log("emisor2: "+emisor.value+" / receptor2:"+getContact.value);
+        if(data.user == '<%= usuario_token %>'){
+        mensajes.innerHTML += `<div id="bdMensajes" style="display: flex;
+                flex-wrap: wrap;
+                flex-direction: column;">
+                <div style="width: -moz-min-content; /* Firefox */
+            width: -webkit-min-content; /* Chrome */
+            width: min-content; margin-top: 8px; padding: 6px; padding-left: 15px; padding-right: 15px; background-color: rgb(0, 157, 94); color: #ffffff;" id="misMensajes"> ${ data.mensaje } </div></div>`;
+        }else if((data.user != getContact.value)&&(data.userreceptor != emisor.value)){
+            console.log("decripted");
+        }else if((data.user != getContact.value)&&(data.userreceptor == emisor.value)){
+            console.log("decripted");
+        }else if(emisor.value == getContact.value){
+                console.log("decripted");
+        }else if((data.userreceptor == getContact.value)&&(data.user == emisor.value)){
+                console.log("decripted");
+        }else if((data.userreceptor == getContact.value)||('<%= usuario_token %>' == data.userreceptor)){
+            mensajes.innerHTML += `<div id="bdMensajes" style="display: flex;
+                flex-wrap: wrap-reverse;
+                flex-direction: column;">
+                <div style="width: -moz-min-content; /* Firefox */
+            width: -webkit-min-content; /* Chrome */
+            width: min-content; margin-top: 8px; padding: 6px; padding-left: 15px; padding-right: 15px; background-color: rgb(13, 123, 143); color: #ffffff;" id="misMensajes"> ${ data.mensaje } </div></div>`;
+
+            if(getContact.value != ''){
+            prueba(getContact.value);
+            }
+        }
+
+        var mydiv = $("#zonaChat");
+        mydiv.scrollTop(mydiv.prop("scrollHeight"));
+
+    })
+
+    function prueba(contacto){
+        $('#contador19014730').empty();
+        socket.emit('get-messages-count', { emisor: '<%= usuario_token %>', control: 'update', contacto: contacto});
+    }
+
+    socket.on("listado-mensajes-count",(data)=>{
+        data.forEach(usuario => {
+            console.log(usuario);
+            if(usuario.emisor != ''){
+            //usuario.usuario.innerHTML +='<b style="color: #3AB800; background: #E4FFD7;">En linea</b>'
+            document.getElementById('contador'+usuario.emisor).innerHTML = `${ usuario.recibidos }`; 
+        document.getElementById('contador'+usuario.emisor).style.background = "#2AE700"; 
+            }else{
+                alert("no existe");
+            }
+        })
+    })
+    
+</script>
+</html>
